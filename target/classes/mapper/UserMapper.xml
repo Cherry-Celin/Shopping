@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.shop.mapper.UserMapper">
+
+    <select id="findByUsername" parameterType="string" resultType="com.example.shop.entity.User">
+        SELECT * FROM user WHERE username = #{username}
+    </select>
+
+    <insert id="insertUser" parameterType="com.example.shop.entity.User">
+        INSERT INTO user (username, password, nickname, email, create_time, update_time)
+        VALUES (#{username}, #{password}, #{nickname}, #{email}, NOW(), NOW())
+    </insert>
+
+    <select id="findById" resultType="com.example.shop.entity.User">
+        SELECT * FROM user WHERE id = #{id}
+    </select>
+
+    <!-- 在 UserMapper.xml 中添加 -->
+    <update id="updateUserProperty" parameterType="map">
+        UPDATE user
+        SET property = #{newProperty}
+        WHERE id = #{userId}
+    </update>
+
+    <update id="updateUser" parameterType="com.example.shop.entity.User">
+        UPDATE user
+        SET nickname = #{nickname},
+        avatar = #{avatar},
+        sexy = #{sexy},
+        birthday = #{birthday},
+        email = #{email},
+        phone_number = #{phone_number},
+        location = #{location},   <!-- 添加 location 字段 -->
+        detail_address = #{detail_address}, <!-- 添加 detail_address 字段 -->
+        update_time = NOW()
+        WHERE username = #{username}
+    </update>
+
+    <select id="findAll" resultType="com.example.shop.entity.User">
+        SELECT * FROM user
+    </select>
+</mapper>

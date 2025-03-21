@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.shop.mapper.CartMapper">
+
+    <!-- 获取购物车商品 -->
+    <select id="getCartItems" parameterType="int" resultMap="CartItemResultMap">
+        SELECT p.id AS product_id, p.product_name, p.img_url, p.price, p.status, c.id AS cartItemId, c.user_id AS userId
+        FROM cart c
+                 JOIN product p ON c.product_id = p.id
+        WHERE c.user_id = #{userId}
+    </select>
+
+    <!-- 删除购物车商品 -->
+    <delete id="deleteCartItem" parameterType="int">
+        DELETE FROM cart
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 批量删除购物车商品 -->
+    <delete id="deleteSelectedCartItems">
+        DELETE FROM cart
+        WHERE id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 结算 -->
+    <update id="checkout">
+        <!-- 更新商品状态为已卖出 -->
+        <foreach collection="productIds" item="productId" separator=";">
+            UPDATE product
+            SET status = '已卖出'
+            WHERE id = #{productId}
+        </foreach>
+        <!-- 清空购物车中的对应商品 -->
+        DELETE FROM cart
+        WHERE user_id = #{userId} AND product_id IN
+        <foreach item="productId" collection="productIds" open="(" separator="," close=")">
+            #{productId}
+        </foreach>
+    </update>
+
+    <!-- 添加商品到购物车 -->
+    <insert id="addToCart" parameterType="map">
+        INSERT INTO cart (user_id, product_id)
+        VALUES (#{userId}, #{productId})
+    </insert>
+
+    <!-- 检查商品是否在购物车中 -->
+    <select id="isProductInCart" parameterType="map" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM cart
+        WHERE user_id = #{userId} AND product_id = #{productId}
+    </select>
+
+    <resultMap id="CartItemResultMap" type="com.example.shop.entity.CartItem">
+        <id property="id" column="cartItemId"/>
+        <association property="user" javaType="com.example.shop.entity.User">
+            <id property="id" column="userId"/>
+            <!-- Add other user properties if necessary -->
+        </association>
+        <association property="product" javaType="com.example.shop.entity.Product">
+            <id property="id" column="product_id"/>
+            <result property="product_name" column="product_name"/>
+            <result property="img_url" column="img_Url"/>
+            <result property="price" column="price"/>
+            <result property="status" column="status"/>
+        </association>
+    </resultMap>
+
+</mapper>

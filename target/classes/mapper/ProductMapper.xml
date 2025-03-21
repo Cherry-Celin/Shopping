@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.shop.mapper.ProductMapper">
+
+    <!-- 插入产品 -->
+    <insert id="insertProduct" parameterType="com.example.shop.entity.Product">
+        INSERT INTO product (product_name, type_id, price, description, create_time, update_time, img_url, is_deleted, status, publish_start, publish_end, seller_id,postage,ways,donation_percent)
+        VALUES (#{product_name}, #{type_id}, #{price}, #{description}, #{create_time}, #{update_time}, #{img_url}, #{is_deleted}, #{status}, #{publish_start}, #{publish_end}, #{user.id},#{postage},#{ways},#{donation_percent})
+    </insert>
+
+    <!-- 更新用户地址信息，同时更新 update_time -->
+    <update id="updateUserAddress">
+        UPDATE user
+        SET location = #{location}, detail_address = #{detailAddress}, update_time = #{updateTime}
+        WHERE username = #{username}
+    </update>
+
+    <!-- 根据ID获取产品 -->
+    <select id="getProductById" parameterType="int" resultMap="ProductResultMap">
+        SELECT p.id, p.product_name, p.price, p.description, p.img_url, p.seller_id,
+               p.donation_percent, p.ways, p.postage,
+               u.nickname as user_nickname, u.avatar as user_avatar, u.username ,
+               u.location as user_location, u.detail_address as user_detail_address
+        FROM product p
+                 LEFT JOIN user u ON p.seller_id = u.id
+        WHERE p.id = #{id}
+    </select>
+
+    <!-- 根据关键词搜索产品 -->
+    <select id="searchProductsByQuery" parameterType="string" resultType="com.example.shop.entity.Product">
+        SELECT id, product_name, type_id, price, description, create_time, img_url
+        FROM product
+        WHERE product_name LIKE CONCAT('%', #{query}, '%') OR description LIKE CONCAT('%', #{query}, '%')
+    </select>
+
+    <!-- 获取指定类型下的所有产品 -->
+    <select id="getProductsByTypeId" parameterType="int" resultMap="ProductResultMap">
+        SELECT p.id, p.product_name, p.price, p.description, p.create_time, p.update_time,
+               p.img_url, p.is_deleted, p.status, p.publish_start, p.publish_end,
+               u.id AS seller_id, u.nickname AS user_nickname, u.avatar AS user_avatar
+        FROM product p
+                 LEFT JOIN user u ON p.seller_id = u.id
+        WHERE p.type_id = #{typeId}
+    </select>
+
+    <!-- 根据用户名获取已经发布的产品 -->
+    <select id="getPublishedProductsByUsername" parameterType="string" resultMap="ProductResultMap">
+        SELECT p.id, p.product_name, p.price, p.description, p.create_time, p.update_time,
+               p.img_url, p.is_deleted, p.status, p.publish_start, p.publish_end,
+               u.id AS seller_id, u.nickname AS user_nickname, u.avatar AS user_avatar
+        FROM product p
+                 LEFT JOIN user u ON p.seller_id = u.id
+        WHERE u.username = #{username} AND p.status = 'PUBLISHED'
+        ORDER BY p.update_time DESC
+    </select>
+
+    <!-- 根据用户名获取保存的产品 -->
+    <select id="getDraftProductsByUsername" parameterType="string" resultMap="ProductResultMap">
+        SELECT p.id, p.product_name, p.price, p.description, p.create_time, p.update_time,
+               p.img_url, p.is_deleted, p.status, p.publish_start, p.publish_end,
+               u.id AS seller_id, u.nickname AS user_nickname, u.avatar AS user_avatar
+        FROM product p
+                 LEFT JOIN user u ON p.seller_id = u.id
+        WHERE u.username = #{username} AND p.status = 'DRAFT'
+        ORDER BY p.update_time DESC
+    </select>
+
+    <!-- 根据用户名获取已下架的产品 -->
+    <select id="getUnPublishedProductsByUsername" parameterType="string" resultMap="ProductResultMap">
+        SELECT p.id, p.product_name, p.price, p.description, p.create_time, p.update_time,
+               p.img_url, p.is_deleted, p.status, p.publish_start, p.publish_end,
+               u.id AS seller_id, u.nickname AS user_nickname, u.avatar AS user_avatar
+        FROM product p
+                 LEFT JOIN user u ON p.seller_id = u.id
+        WHERE u.username = #{username} AND p.status = 'UNPUBLISHED'
+        ORDER BY p.update_time DESC
+    </select>
+
+    <!-- 随机获取20个产品 -->
+    <select id="getRandomProducts" resultMap="ProductResultMap">
+        SELECT *
+        FROM product
+        where status='PUBLISHED'
+        ORDER BY RAND()
+        LIMIT 21
+    </select>
+
+
+
+    <!-- 更新产品信息 -->
+    <update id="updateProduct" parameterType="com.example.shop.entity.Product">
+        UPDATE product
+        SET product_name = #{product_name},
+            price = #{price},
+            description = #{description},
+            img_url = #{img_url},
+            status = #{status},
+            ways = #{ways},
+            donation_percent = #{donation_percent},
+            postage = #{postage},
+            update_time = #{update_time}
+        WHERE id = #{id}
+    </update>
+
+
+
+    <!-- 删除产品 -->
+    <delete id="deleteProduct" parameterType="int">
+        DELETE FROM product
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 获取所有产品 -->
+    <select id="getAllProducts" resultType="com.example.shop.entity.Product">
+        SELECT id, product_name, type_id, price, description, create_time, update_time, img_url, is_deleted, status, publish_start, publish_end
+        FROM product
+    </select>
+
+    <!-- ResultMap to map the complex objects -->
+    <resultMap id="ProductResultMap" type="com.example.shop.entity.Product">
+        <id property="id" column="id"/>
+        <result property="product_name" column="product_name"/>
+        <result property="price" column="price"/>
+        <result property="description" column="description"/>
+        <result property="img_url" column="img_url"/>
+        <result property="postage" column="postage"/>
+        <result property="is_deleted" column="is_deleted"/>
+        <result property="status" column="status"/>
+        <result property="ways" column="ways"/>
+        <result property="donation_percent" column="donation_percent"/>
+        <association property="user" javaType="com.example.shop.entity.User">
+            <id property="id" column="seller_id"/>
+            <id property="username" column="username"/>
+            <result property="nickname" column="user_nickname"/>
+            <result property="avatar" column="user_avatar"/>
+            <result property="location" column="user_location"/>
+            <result property="detail_address" column="user_detail_address"/>
+        </association>
+    </resultMap>
+
+</mapper>

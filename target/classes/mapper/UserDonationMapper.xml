@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.shop.mapper.UserDonationMapper">
+
+    <!-- ResultMap定义 -->
+    <resultMap id="UserDonationResultMap" type="com.example.shop.entity.UserDonation">
+        <id column="id" property="id" />
+        <result column="amount" property="amount" />
+        <result column="feedback" property="feedback" />
+        <result column="feedback_img" property="feedback_img" />
+        <result column="create_time" property="create_time" />
+        <association property="user" column="user_id" javaType="com.example.shop.entity.User">
+            <id column="user_id" property="id" />
+            <result column="username" property="username" />
+            <result column="nickname" property="nickname" />
+            <result column="avatar" property="avatar" />
+            <!-- 添加其他需要的User字段 -->
+        </association>
+        <association property="project" column="project_id" javaType="com.example.shop.entity.Project">
+            <id column="project_id" property="id" />
+            <result column="category" property="category" />
+            <result column="name" property="name" />
+            <result column="description" property="description" />
+            <result column="image" property="image" />
+            <!-- 添加其他需要的Project字段 -->
+        </association>
+    </resultMap>
+
+    <!-- 根据ID获取捐赠记录 -->
+    <select id="getDonationById" resultMap="UserDonationResultMap">
+        SELECT ud.id, ud.amount, ud.feedback, ud.feedback_img, ud.create_time,
+               u.id as user_id, u.username, u.nickname, u.avatar,
+               p.id as project_id, p.category, p.name, p.description, p.image
+        FROM user_donations ud
+                 LEFT JOIN user u ON ud.user_id = u.id
+                 LEFT JOIN projects p ON ud.project_id = p.id
+        WHERE ud.id = #{id}
+    </select>
+
+    <!-- 获取所有捐赠记录 -->
+    <select id="getAllDonations" resultMap="UserDonationResultMap">
+        SELECT ud.id, ud.amount, ud.feedback, ud.feedback_img, ud.create_time,
+               u.id as user_id, u.username, u.nickname, u.avatar,
+               p.id as project_id, p.category, p.name, p.description, p.image
+        FROM user_donations ud
+                 LEFT JOIN user u ON ud.user_id = u.id
+                 LEFT JOIN projects p ON ud.project_id = p.id
+    </select>
+
+    <!-- 更新捐赠金额 -->
+    <update id="updateDonationAmount">
+        UPDATE user_donations
+        SET amount = #{newDonationAmount}
+        WHERE id = #{id}
+    </update>
+
+
+    <insert id="createDonation">
+        INSERT INTO user_donations (user_id, project_id, amount, feedback, feedback_img, create_time)
+        VALUES (#{userId}, #{projectId}, #{amount}, NULL, NULL, NOW())
+    </insert>
+
+    <!-- 更新捐赠记录 -->
+    <update id="updateDonation" parameterType="com.example.shop.entity.UserDonation">
+        UPDATE user_donations
+        SET user_id = #{user.id}, project_id = #{project.id}, amount = #{amount}, feedback = #{feedback}, feedback_img = #{feedback_img}, create_time = #{create_time}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除捐赠记录 -->
+    <delete id="deleteDonation">
+        DELETE FROM user_donations WHERE id = #{id}
+    </delete>
+
+    <!-- 根据用户ID获取捐赠记录 -->
+    <select id="findByUserId" parameterType="int" resultMap="UserDonationResultMap">
+        SELECT ud.id, ud.amount, ud.feedback, ud.feedback_img, ud.create_time,
+               u.id as user_id, u.username, u.nickname, u.avatar,
+               p.id as project_id, p.category, p.name, p.description, p.image
+        FROM user_donations ud
+                 LEFT JOIN user u ON ud.user_id = u.id
+                 LEFT JOIN projects p ON ud.project_id = p.id
+        WHERE ud.user_id = #{userId}
+    </select>
+
+    <!-- 根据用户ID和项目ID检查捐赠记录是否存在 -->
+    <select id="existsByUserIdAndProjectId" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM user_donations
+        WHERE user_id = #{userId} AND project_id = #{projectId}
+    </select>
+
+</mapper>

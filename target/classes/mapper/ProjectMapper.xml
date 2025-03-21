@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.shop.mapper.ProjectMapper">
+
+    <!-- 根据ID获取项目 -->
+    <select id="getProjectById" resultType="com.example.shop.entity.Project">
+        SELECT * FROM projects WHERE id = #{id}
+    </select>
+
+    <!-- 获取所有项目 -->
+    <select id="getAllProjects" resultType="com.example.shop.entity.Project">
+        SELECT * FROM projects
+    </select>
+
+    <!-- 插入新项目 -->
+    <insert id="createProject" parameterType="com.example.shop.entity.Project">
+        INSERT INTO projects (category, name, description, image, create_time)
+        VALUES (#{category}, #{name}, #{description}, #{image}, #{create_time})
+    </insert>
+
+    <!-- 更新项目 -->
+    <update id="updateProject" parameterType="com.example.shop.entity.Project">
+        UPDATE projects
+        SET category = #{category}, name = #{name}, description = #{description}, image = #{image}, create_time = #{create_time}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除项目 -->
+    <delete id="deleteProject">
+        DELETE FROM projects WHERE id = #{id}
+    </delete>
+
+    <!-- 根据类别获取项目 -->
+    <select id="getProjectsByCategory" resultType="com.example.shop.entity.Project">
+        SELECT * FROM projects WHERE category = #{category}
+    </select>
+
+    <!-- 搜索项目 -->
+    <select id="searchProjects" resultType="com.example.shop.entity.Project">
+        SELECT * FROM projects
+        WHERE
+        <if test="category != null">
+            category = #{category} AND
+        </if>
+        (name LIKE CONCAT('%', #{query}, '%') OR description LIKE CONCAT('%', #{query}, '%'))
+    </select>
+
+</mapper>

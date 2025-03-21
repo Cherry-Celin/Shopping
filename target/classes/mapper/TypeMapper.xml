@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.shop.mapper.TypeMapper">
+    <select id="getAllTypes" resultType="com.example.shop.entity.Type">
+        SELECT id, name FROM type
+    </select>
+</mapper>
